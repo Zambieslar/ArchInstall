@@ -43,3 +43,36 @@ case $DRIVE_TYPE in
         ;;
 esac
 
+printf "Please select a kernel"
+X=0
+for i in "${KERNELS[@]}"
+do
+        printf "%s\n" "$X) $i"
+        ((X++))
+done
+printf "\n(0-5) >>> "
+read KERNEL
+printf "Installing the base system"
+pacstrap -K /mnt "${PKGS[@]}" "$KERNEL"
+"Generating fstab to match partition layout"
+genfstab -U /mnt >> /mnt/etc/fstab
+clear
+printf "Please select a region\n\n"
+X=0
+for i in "${!ZONES[@]}"
+do
+        MAP["$X"]="$i"
+        printf "%s\n" "   $X) $i"
+        ((X++))
+done
+printf "\n>>> "
+read -r REGION
+printf "Please select a zone\n\n"
+X=0
+for i in ${ZONES[${MAP[$REGION]}]}
+do
+        printf "%s\n" "   $X) $i"
+        ((X++))
+done
+printf "\n>>> "
+read -r ZONE

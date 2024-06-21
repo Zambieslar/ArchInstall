@@ -86,20 +86,39 @@ partitionDrive() {
                 esac
         done
 }
-
+calcSwap() {
+        TOTAL_MEM=$(lsmem -no SIZE | grep -oP "(?<=Total online memory:)\d\d|\d\d.\d")
+        TARGET_SIZE=$(bc -l <<< "$TOTAL_MEM * 1.5")
+        return "$TARGET_SIZE"
+}
 # $1: Boot partition
 # $2: Root partition
 
 fsPrepare() {
         mkfs.fat -F 32 "$1"
         mkfs.ext4 "$2"
+        mount $2 /mnt
+        if [[ -d /mnt/boot ]]; then
+                mount $1 /mnt/boot
+        fi
+        mkdir /mnt/boot
+        mount $1 /mnt/boot
         printf "Would you like to use swap?\n\n>>> "
         read -r SWAP
         case $SWAP in
                 "Yes"|"yes"|1)
-                        printf "Would you like to use a swap file or swap partition?"
+                        printf "Would you like to use a swap file or swap partition?\n\n>>> "
+                        read -r RESULT
+                        case "$RESULT" in
+                        "yes"|"Yes"|1)
+                                TARGET_SIZE=calcSwap
+                                mkswap -U clear --size "$TARGET_SIZE"G --file /mnt/swap
                         ;;
+                        "no"|"No"|2)
+                        ;;
+                esac
+                ;;
                 "No"|"no"|2)
-                        ;;
+                ;;
         esac
 }
