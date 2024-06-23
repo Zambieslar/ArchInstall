@@ -46,4 +46,4 @@ NTPSTATUS=$(timedatectl | grep -oP "(NTP service: )\K.*")
 MOD_NVIDIA=(nvidia nvidia_modeset nvidia_drm nvidia_uvm)
 ENCRYPT_HOOKS=(base udev autodetect microcode modconf keyboard keymap consolefont block lvm2 encrypt filesystems fsck)
 BOOT_LOADERS=(GRUB Systemd-Boot)
-export "${DRIVES?}" "${BOOTMODE?}" "${NTPSTATUS?}" "${KERNELS?}" "${ZONES?}" "${REGIONS?}" "${MOD_NVIDIA?}" "${ENCRYPT_HOOKS?}" "${BOOT_LOADERS?}"
+export "${BOOTMODE?}" "${NTPSTATUS?}" "${KERNELS?}" "${ZONES?}" "${REGIONS?}" "${MOD_NVIDIA?}" "${ENCRYPT_HOOKS?}" "${BOOT_LOADERS?}"

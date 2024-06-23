@@ -7,7 +7,6 @@ source ./wrapper.sh
 source ./encrypt.sh
 
 NETSTATUS=$(ping archlinlux.org)
-
 case "$?" in
         1)
                 printf "No connection currently available. Please connect the device to the internet before continuing with the installation."
@@ -20,7 +19,7 @@ esac
 
 if [[ "$NTPSTATUS" = "inactive" ]]; then
         printf "NTP currently inactive. This is not ideal in some situations as it will prevent package installations and system updates. Fixing for your dumbass..."
-        sed -Ee 's/#NTP=//g' -e 's/(#FallbackNTP=)(.*)/NTP=\2/' /etc/systemd/timesyncd.conf
+        sed -i -Ee 's/#NTP=//g' -e 's/(#FallbackNTP=)(.*)/NTP=\2/' /etc/systemd/timesyncd.conf
         timedatectl set-ntp true
 fi
 
@@ -67,6 +66,7 @@ done
 printf "\n>>> "
 read -r REGION
 clear
+X=0
 printf "Please select a zone\n\n"
 for i in "${ZONES[@]}"
 do
@@ -97,16 +97,40 @@ read -r HOSTNAME
 
 echo $HOSTNAME >> /mnt/etc/hostname
 
+printf "Please select a boot loader for your installation.\n\n"
+X=0
+for i in ${BOOT_LOADERS[@]}
+do
+        printf "\t%s\n" "$X) $i"
+        ((X++))
+done
+printf "\n\n>>> "
+read BOOT_LOADER
+
+DRIVE_UUID=$(lsblk -Po NAME,UUID /dev/$DRIVE | sed 's/NAME=\"\(.*\)\"\sUUID=\"\(.*\)\"/\2/'
+
+case $BOOT_LOADER in
+        "GRUB"|"grub"|1)
+                grub-install --target-x86_64-efi --efi-directory /mnt/boot --bootloader-id=ArchLinux
+                grub-mkconfig -o /mnt/boot/grub/grub.cfg
+        ;;
+        "Systemd-Boot"|"systemd-boot"|2)
+                arch-chroot /mnt bootctl install --esp-path=/boot
+        ;;
+esac
+
 case $ENCRYPT in
         "Yes"|"yes"|1)
-                printf "Update mkinitcpio.conf to support disk encryption and preload GFX drivers."
+                printf "Update mkinitcpio.conf and GRUB to support disk encryption and preload GFX drivers."
                 sed -i "s/MODULES=()/$MOD_NVIDIA/g" /mnt/etc/mkinitcpio.conf
                 sed -i "s/HOOKS=(.*)/$ENCRYPT_HOOKS/g" /mnt/etc/mkinitcpio.conf
+                sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=\".*\"/GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet nvidia_drm.modeset=1 cryptdevice=UUID=$DRIVE_UUID:cryptlvm root=/dev/arch-lv/root nvidia_drm.modeset=1\"/g"
                 arch-chroot /mnt mkinitcpio -P
         ;;
         "No"|"no"|2)
         ;;
 esac
+
 while :
 do  
         printf "Finally, please enter a password for your root account.\n\n>>> "
@@ -124,22 +148,3 @@ do
                 continue
         fi
 done
-
-printf "Please select a boot loader for your installation.\n\n"
-X=0
-for i in ${BOOT_LOADERS[@]}
-do
-        printf "\t%s\n" "$X) $i"
-        ((X++))
-done
-printf "\n\n>>> "
-read BOOT_LOADER
-
-case $BOOT_LOADER in
-        "GRUB"|"grub"|1)
-                grub-install --target-x86_64-efi --efi-directory /mnt/boot --bootloader-id=ArchLinux
-                grub-mkconfig -o /mnt/boot/grub/grub.cfg
-        ;;
-        "Systemd-Boot"|"systemd-boot"|2)
-        ;;
-esac

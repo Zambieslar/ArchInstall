@@ -22,6 +22,28 @@ getDrives() {
         return "${DRIVES[$DEVICE]}"
 }
 
+getUUID(){
+        declare -A DRIVES
+        X=1
+        RESULT=$(lsblk -Po NAME,UUID | sed 's/NAME=\"\(.*\)\"\sUUID=\"\(.*\)\"/\1 | \2/')
+        KEY=$(sed -n "$X"p <<< $RESULT | sed 's/\(.*\)\s|\s\(.*\)/\1/')
+        while [[ -n $KEY ]]
+        do
+        	KEY=$(sed -n "$X"p <<< $RESULT | sed 's/\(.*\)\s|\s\(.*\)/\1/')
+        	VALUE=$(sed -n "$X"p <<< $RESULT | sed 's/\(.*\)\s|\s\(.*\)/\2/')
+        	if [[ -z $VALUE ]]; then
+        		((X++))
+        		continue
+        	elif [[ -z $KEY ]]; then
+        		break
+        	else
+        		DRIVES["$KEY"]="$VALUE"
+        		((X++))
+        	fi
+        done
+        return $DRIVES
+}
+
 # Enumerate partitions for the user to select
 # Return the selected partition in /dev/block_dev_part format
 getParts() {
