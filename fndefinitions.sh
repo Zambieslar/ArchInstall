@@ -19,34 +19,13 @@ getDrives() {
                 fi
         done
         # Return the block device in format /dev/block_dev
-        return "${DRIVES[$DEVICE]}"
-}
-
-getUUID(){
-        declare -A DRIVES
-        X=1
-        RESULT=$(lsblk -Po NAME,UUID | sed 's/NAME=\"\(.*\)\"\sUUID=\"\(.*\)\"/\1 | \2/')
-        KEY=$(sed -n "$X"p <<< $RESULT | sed 's/\(.*\)\s|\s\(.*\)/\1/')
-        while [[ -n $KEY ]]
-        do
-        	KEY=$(sed -n "$X"p <<< $RESULT | sed 's/\(.*\)\s|\s\(.*\)/\1/')
-        	VALUE=$(sed -n "$X"p <<< $RESULT | sed 's/\(.*\)\s|\s\(.*\)/\2/')
-        	if [[ -z $VALUE ]]; then
-        		((X++))
-        		continue
-        	elif [[ -z $KEY ]]; then
-        		break
-        	else
-        		DRIVES["$KEY"]="$VALUE"
-        		((X++))
-        	fi
-        done
-        return $DRIVES
+        DRIVE="${DRIVES[$DEVICE]}"
 }
 
 # Enumerate partitions for the user to select
 # Return the selected partition in /dev/block_dev_part format
 getParts() {
+        clear
         for f in /dev/*
         do
                 case $(grep -P "(?<=nvme\dn\dp\d)|(?<=sd\w\d)|(?<=xvd\w\d)" <<< "$f") in
@@ -80,7 +59,7 @@ getParts() {
                 fi
         done
         # Return the block device in format /dev/block_dev_part
-        return "${DRIVES[$DEVICE]}"
+        PARTS="${DRIVES[$DEVICE]}"
 }
 
 # Allow user to get the existing block devices and launch cfdisk to partition them interactively.

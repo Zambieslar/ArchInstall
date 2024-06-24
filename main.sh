@@ -6,7 +6,7 @@ source ./create_lvm.sh
 source ./wrapper.sh
 source ./encrypt.sh
 
-NETSTATUS=$(ping archlinlux.org)
+
 case "$?" in
         1)
                 printf "No connection currently available. Please connect the device to the internet before continuing with the installation."
@@ -25,6 +25,7 @@ fi
 
 printf "Create LVM or static partition?\n\n (LVM || Static)\n\n>>> "
 read -r DRIVE_TYPE
+clear
 printf "Would you like to encrypt your drive?\n\n (Yes || No)\n\n>>> "
 read -r ENCRYPT
 
@@ -32,7 +33,7 @@ case $DRIVE_TYPE in
         "LVM"|"Lvm"|"lvm"|1)
                 clear
                 printf "First, we need to create at least two partitions on a drive.\n\nIf you choose to encrypt your LV's, the boot volume can't be encrypted or the bootloader won't be able to load our the kernel on boot.\n\nCreate one boot partition and one root partition to wrap your Logical Volumes."
-                DRIVE=getDrives
+                getDrives
                 partitionDrive $DRIVE # Passing block device in /dev/block_dev format
                 if [[ $ENCRYPT == "Yes" ]] || [[ $ENCRYPT == "yes" ]] || [[ $ENCRYPT == "1" ]]; then
                             encryptDrive $DRIVE
@@ -107,7 +108,7 @@ done
 printf "\n\n>>> "
 read BOOT_LOADER
 
-DRIVE_UUID=$(lsblk -Po NAME,UUID /dev/$DRIVE | sed 's/NAME=\"\(.*\)\"\sUUID=\"\(.*\)\"/\2/'
+DRIVE_UUID=$(lsblk -Po NAME,UUID /dev/$DRIVE | sed 's/NAME=\"\(.*\)\"\sUUID=\"\(.*\)\"/\2/')
 
 case $BOOT_LOADER in
         "GRUB"|"grub"|1)

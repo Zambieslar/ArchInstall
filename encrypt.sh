@@ -27,7 +27,7 @@ encryptDrive() {
         read -r RESULT
         clear
         printf "Please choose a Physical Volume to prepare"
-        PART=getParts
+        getParts
         if [[ $RESULT = "Yes" || $RESULT = "yes" || $RESULT = 1  ]]; then
                 prepare "$PART" $1
         fi
