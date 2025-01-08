@@ -18,7 +18,7 @@ case "$?" in
 esac
 
 if [[ "$NTPSTATUS" = "inactive" ]]; then
-        printf "NTP currently inactive. This is not ideal in some situations as it will prevent package installations and system updates. Fixing for your dumbass..."
+        printf "NTP currently inactive. This is not ideal in some situations as it will prevent package installations and system updates."
         sed -i -Ee 's/#NTP=//g' -e 's/(#FallbackNTP=)(.*)/NTP=\2/' /etc/systemd/timesyncd.conf
         timedatectl set-ntp true
 fi
